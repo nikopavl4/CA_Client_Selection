@@ -1,5 +1,6 @@
 import random
 from typing import Tuple
+import copy
 import numpy as np
 import torch
 import torch.nn.functional as F
@@ -28,43 +29,46 @@ torch.backends.cudnn.benchmark = False
 from dataset.load_dataset import load_MNIST
 trainset, testset = load_MNIST()
 
-# Create Clients - each client has its own id, trainloader, testloader, model, optimizer
-client_list = create_clients()
-
-# Initiazlize Server with its own strategy, global test, global model, global optimizer, client selection 
-test_loader = DataLoader(testset, batch_size=args.batch_size, shuffle=True)
-
 # Print Dataset Details
 print("== MNIST ==")
 in_dim = 1
-num_classes = len(torch.unique(torch.as_tensor(train_loader.dataset.targets)))
+num_classes = len(torch.unique(torch.as_tensor(trainset.targets)))
 print(f'Input Dimensions: {in_dim}')
 print(f'Num of Classes: {num_classes}')
 print(f'Train Samples: {len(trainset)}')
 print(f'Test Samples: {len(testset)}')
 print(f'Num of Clients: {args.clients}')
-print(f'Train samples per client: {(len(trainset)/args.clients)*(1-args.test_size)}')
-print(f'Test samples per client: {(len(trainset)/args.clients)*(args.test_size)}')
+print(f'Train samples per client: {int((len(trainset)/args.clients)*(1-args.test_size))}')
+print(f'Test samples per client: {int((len(trainset)/args.clients)*(args.test_size))}')
+print("===============")
 
-# for i in range fed rounds perform a server update
+# Create Clients - each client has its own id, trainloader, testloader, model, optimizer
+from ml.utils.fed_utils import create_fed_clients
+client_list = create_fed_clients(trainset, args.clients)
 
-# print results
-
+# Initialize model, optimizer, criterion
 # Get Model
 from ml.models.cnn import CNN
 model = CNN()
 model.to(device)
 
-# Get Criterion
-from ml.utils.helpers import get_criterion
-criterion = get_criterion(args.criterion)
+# Initialize Fed Clients
+from ml.utils.fed_utils import initialize_fed_clients
+client_list = initialize_fed_clients(client_list, args, copy.deepcopy(model))
 
-# Get Optimizer
-from ml.utils.helpers import get_optim
-optimizer = get_optim(model, args.optimizer, args.lr)
+# Initiazlize Server with its own strategy, global test, global model, global optimizer, client selection 
+from ml.fl.server import Server
+Fl_Server = Server(args, testset, copy.deepcopy(model))
 
-#Train, Test
-train_history = train(model,train_loader, args.device, criterion, optimizer, args.epochs, True)
-acc, f1 = test(model,test_loader,criterion, args.device)
+for round in range(args.fl_rounds+1):
+    print(f"FL Round: {round}")
+    client_list = Fl_Server.update(client_list)
+    acc, f1 = Fl_Server.evaluate()
+    print(f'Round {round} - Server Accuracy: {acc}, Server F1: {f1}.')
 
-print(f'Final Results on Test - Accuracy: {acc}, F1: {f1}.')
+
+# #Train, Test
+# train_history = train(model,train_loader, args.device, criterion, optimizer, args.epochs, True)
+# acc, f1 = test(model,test_loader,criterion, args.device)
+
+# print(f'Final Results on Test - Accuracy: {acc}, F1: {f1}.')
