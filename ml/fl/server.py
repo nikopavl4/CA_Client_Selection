@@ -4,6 +4,7 @@ from typing import Optional, Callable, List, Tuple, OrderedDict, Union
 import torch
 import numpy as np
 from ml.fl.aggregation.aggregator import Aggregator
+from ml.fl.selectors import RandomSelector
 
 class Server:
     def __init__(self, args, testset, model):
@@ -20,13 +21,14 @@ class Server:
         self.aggregator = Aggregator(aggregation_alg=args.aggregator , params=None)
         print(f"Aggregation algorithm: {repr(self.aggregator)}")
 
-        # self.selector = args.selector
+        # Initialize Selector
+        self.selector = RandomSelector(args.fraction)
 
         print("Successfully initialized FL Server")
   
     def update(self, client_list):
         # Perform training for every client
-        selected_clients = client_list
+        selected_clients = self.selector.sample_clients(client_list)
         for cl in selected_clients:
             train_history = train(cl.model,cl.train_loader, cl.device, cl.criterion, cl.optimizer, cl.epochs,False)
             # Evaluate each client on the respective testset

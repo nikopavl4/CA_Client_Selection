@@ -65,10 +65,3 @@ for round in range(args.fl_rounds+1):
     client_list = Fl_Server.update(client_list)
     acc, f1 = Fl_Server.evaluate()
     print(f'Round {round} - Server Accuracy: {acc}, Server F1: {f1}.')
-
-
-# #Train, Test
-# train_history = train(model,train_loader, args.device, criterion, optimizer, args.epochs, True)
-# acc, f1 = test(model,test_loader,criterion, args.device)
-
-# print(f'Final Results on Test - Accuracy: {acc}, F1: {f1}.')
