@@ -9,9 +9,12 @@ from ml.utils.train_utils import train, test
 import numpy as np
 
 class Client:
-    def __init__(self, id, dataset):
+    def __init__(self, id, vehicle_list):
         self.id = id
-        self.dataset = dataset
+        self.vehicle_list = vehicle_list
+        self.IS = None
+        self.DQ = None
+        self.dataset = None
         self.trainloader = None
         self.testloader = None
         self.model = None

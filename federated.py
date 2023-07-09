@@ -27,41 +27,53 @@ torch.backends.cudnn.benchmark = False
 
 # Load dataset
 from dataset.load_dataset import load_MNIST
-trainset, testset = load_MNIST()
+trainset1, trainset2, testset = load_MNIST()
 
 # Print Dataset Details
 print("== MNIST ==")
 in_dim = 1
-num_classes = len(torch.unique(torch.as_tensor(trainset.targets)))
+num_classes = len(torch.unique(torch.as_tensor(testset.targets)))
 print(f'Input Dimensions: {in_dim}')
 print(f'Num of Classes: {num_classes}')
-print(f'Train Samples: {len(trainset)}')
+print(f'Train Samples: {len(trainset1)}')
+print(f'Train Samples to distribute later: {len(trainset2)}')
 print(f'Test Samples: {len(testset)}')
-print(f'Num of Clients: {args.clients}')
-print(f'Train samples per client: {int((len(trainset)/args.clients)*(1-args.test_size))}')
-print(f'Test samples per client: {int((len(trainset)/args.clients)*(args.test_size))}')
+print(f'Num of Clients: {args.vehicles}')
+print(f'Initial Train samples per client: {int((len(trainset1)/args.vehicles)*(1-args.test_size))}')
+print(f'Initial Test samples per client: {int((len(trainset1)/args.vehicles)*(args.test_size))}')
 print("===============")
 
+# Create vehicles
+from ml.utils.fed_utils import create_fed_vehicles
+vehicle_list = create_fed_vehicles(trainset1, args.vehicles)
+
+# Tested - ok
+# from ml.utils.fed_utils import update_fed_vehicles
+# vehicle_list, trainset2 = update_fed_vehicles(vehicle_list, trainset2)
+
+
 # Create Clients - each client has its own id, trainloader, testloader, model, optimizer
-from ml.utils.fed_utils import create_fed_clients
-client_list = create_fed_clients(trainset, args.clients)
+# from ml.utils.fed_utils import create_fed_clients
+# client_list = create_fed_clients(trainset, args.clients)
 
-# Initialize model, optimizer, criterion
-# Get Model
-from ml.models.cnn import CNN
-model = CNN()
-model.to(device)
+from ml.utils.fed_utils import move_vehicles
+move_vehicles(vehicle_list)
+# # Initialize model, optimizer, criterion
+# # Get Model
+# from ml.models.cnn import CNN
+# model = CNN()
+# model.to(device)
 
-# Initialize Fed Clients
-from ml.utils.fed_utils import initialize_fed_clients
-client_list = initialize_fed_clients(client_list, args, copy.deepcopy(model))
+# # Initialize Fed Clients
+# from ml.utils.fed_utils import initialize_fed_clients
+# client_list = initialize_fed_clients(client_list, args, copy.deepcopy(model))
 
-# Initiazlize Server with its own strategy, global test, global model, global optimizer, client selection 
-from ml.fl.server import Server
-Fl_Server = Server(args, testset, copy.deepcopy(model))
+# # Initiazlize Server with its own strategy, global test, global model, global optimizer, client selection 
+# from ml.fl.server import Server
+# Fl_Server = Server(args, testset, copy.deepcopy(model))
 
-for round in range(args.fl_rounds+1):
-    print(f"FL Round: {round}")
-    client_list = Fl_Server.update(client_list)
-    acc, f1 = Fl_Server.evaluate()
-    print(f'Round {round} - Server Accuracy: {acc}, Server F1: {f1}.')
+# for round in range(args.fl_rounds+1):
+#     print(f"FL Round: {round}")
+#     client_list = Fl_Server.update(client_list)
+#     acc, f1 = Fl_Server.evaluate()
+#     print(f'Round {round} - Server Accuracy: {acc}, Server F1: {f1}.')
