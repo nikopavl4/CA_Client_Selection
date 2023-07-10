@@ -30,7 +30,11 @@ class Client:
         self.batch_size = None
 
 
-    def init_learning_parameters(self, params: Dict[str, Union[bool, str, int, float]], model):  # default parameters
+    def init_learning_parameters(self, params: Dict[str, Union[bool, str, int, float]], model):
+        """
+        This function initializes the learning parameters
+        of each  client.
+        """
         self.epochs = params["epochs"]
         self.lr = params["lr"]
         self.model = model
@@ -49,6 +53,9 @@ class Client:
         
 
     def set_parameters(self, parameters: Union[List[np.ndarray], torch.nn.Module]):
+        """
+        Setting model parameters of the client
+        """
         if not isinstance(parameters, torch.nn.Module):
             params_dict = zip(self.model.state_dict().keys(), parameters)
             state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
@@ -57,23 +64,38 @@ class Client:
             self.model.load_state_dict(parameters.state_dict(), strict=True)
 
     def get_parameters(self) -> List[np.ndarray]:
+        """
+        Getting model parameters of the client
+        """
         return [val.cpu().numpy() for _, val in self.model.state_dict().items()]
     
 
-    def update(self):     
+    def update(self): 
+        """
+        Perform local training for specified epochs.
+        """    
         train_history = train(self.model,self.train_loader, self.device, self.criterion, self.optimizer, self.epochs,False)
     
     def evaluate(self, test_loader):
+        """
+        Evaluaate on local test set.
+        """
         acc, f1 = test(self.model,test_loader,self.criterion, self.device)
         return acc, f1
     
     def register(self, vehicle):
+        """
+        Register a vehicle to the bs (client)
+        """
         vehicle.current_bs = self.id
         self.vehicle_list.append(vehicle)
         self.IS = self.IS + 1
         
 
     def unregister(self, vehicle):
+        """
+        Unregister a vehicle from the bs (client)
+        """
         for mycar in self.vehicle_list:
             if mycar.id == vehicle.id:
                 self.vehicle_list.remove(vehicle)
@@ -83,11 +105,19 @@ class Client:
         return vehicle
 
     def reconfirm(self, vehicle):
+        """
+        If the vehicle remains at the same bs
+        reconfirm its presence.
+        """
         for mycar in self.vehicle_list:
             if mycar.id == vehicle.id:
                 mycar.previous_bs = mycar.current_bs
 
     def refresh(self):
+        """
+        Update client's data loaders after adding
+        new clients.
+        """
         self.dataset = self.vehicle_list[0].dataset
         for vehicle in self.vehicle_list[1:]:
             self.dataset = ConcatDataset([self.dataset, vehicle.dataset])

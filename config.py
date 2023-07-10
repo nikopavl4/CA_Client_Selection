@@ -14,7 +14,7 @@ def str2none(v):
 def centralized_args():
     parser = argparse.ArgumentParser(description="Perform Centralized Learning.")
     parser.add_argument('--seed', type=int, default=0, help="The seed to initialize the random generators.")
-    parser.add_argument('--dataset', type=str, default='MNIST', help="Choose between MNIST and CIFAR10 dataset.")
+    parser.add_argument('--dataset', type=str, default='CIFAR10', help="Choose between MNIST and CIFAR10 dataset.")
     parser.add_argument('--batch_size', type=int, default=64, help="The batch size to load datasets")
     parser.add_argument('--model_name', type=str, default='cnn',choices=['cnn'], help="The model to use for training.")
     parser.add_argument('--epochs', type=int, default=10, help="The number of epochs for model training.")
@@ -32,7 +32,7 @@ def centralized_args():
 def federated_args():
     parser = argparse.ArgumentParser(description="Perform Federated Learning.")
     parser.add_argument('--seed', type=int, default=2023, help="The seed to initialize the random generators.")
-    parser.add_argument('--dataset', type=str, default='MNIST', help="Choose between MNIST and CIFAR10 dataset.")
+    parser.add_argument('--dataset', type=str, default='CIFAR10', help="Choose between MNIST and CIFAR10 dataset.")
     parser.add_argument('--batch_size', type=int, default=64, help="The batch size to load datasets")
     parser.add_argument('--model_name', type=str, default='cnn',choices=['cnn'], help="The model to use for training.")
     parser.add_argument('--epochs', type=int, default=3, help="The number of epochs for model training.")
@@ -44,10 +44,12 @@ def federated_args():
     parser.add_argument('--patience', type=int, default=50, help="The patience value for early stopping.")
     parser.add_argument('--test_size', type=float, default=0.2, help="The fraction of samples to use for testing.")
     parser.add_argument('--vehicles', type=int, default=100, help="The number of vehicles.")
+    parser.add_argument('--mobility', type=float, default=0.3, help="The mobility of vehicles in the grid.")
     parser.add_argument('--clients', type=int, default=25, help="The number of clients taking part in the federated learning process.")
     parser.add_argument('--fl_rounds', type=int, default=5, help="The number of federated rounds for model training.")
     parser.add_argument('--fraction', type=float, default=0.4, help="The fraction of clients to consider for local model training.")
     parser.add_argument('--aggregator', type=str, default="fednova", help="The federated aggregation algorithm.")
+    parser.add_argument('--selector', type=str, default="cellular", help="The client selection algorithm between random and cellular")
 
     args = parser.parse_args()
     return args

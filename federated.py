@@ -2,6 +2,7 @@ import random
 import copy
 import numpy as np
 import torch
+import time
 from config import federated_args, str2bool
 from ml.utils.fed_utils import update_fed_vehicles, move_vehicles
 from ml.utils.helpers import zero_IS
@@ -30,10 +31,12 @@ if args.dataset == 'MNIST':
     trainset1, trainset2, testset = load_MNIST()
     print("== MNIST ==")
     in_dim = 1
+    linp = 7
 elif args.dataset == 'CIFAR10':
     trainset1, trainset2, testset = load_CIFAR10()
     print("== CIFAR10 ==")
     in_dim = 3
+    linp = 8
 else:
     print("No correct dataset specified! Exiting...")
     exit()
@@ -61,7 +64,7 @@ client_list = create_fed_clients(vehicle_list, args.clients)
 # Initialize model, optimizer, criterion
 # Get Model
 from ml.models.cnn import CNN
-model = CNN()
+model = CNN(in_dim, num_classes, linp)
 model.to(device)
 
 # Initialize Fed Clients
@@ -76,13 +79,36 @@ client_list = refresh_fed_clients(client_list)
 from ml.fl.server import Server
 Fl_Server = Server(args, testset, copy.deepcopy(model))
 
-for round in range(args.fl_rounds+1):
+total_accs = []
+total_f1s = []
+start = time.time()
+for round in range(args.fl_rounds):
     print(f"FL Round: {round}")
     client_list = Fl_Server.update(client_list)
     acc, f1 = Fl_Server.evaluate()
     print(f'Round {round} - Server Accuracy: {acc}, Server F1: {f1}.')
+    total_accs.append(acc)
+    total_f1s.append(f1)
  
     client_list = zero_IS(client_list)
-    client_list = move_vehicles(vehicle_list, client_list)
+    client_list = move_vehicles(vehicle_list, client_list, args.mobility)
     client_list, trainset2 = update_fed_vehicles(client_list, trainset2)
     client_list = refresh_fed_clients(client_list)
+
+stop = time.time()
+training_time = stop - start
+print(f"Training time: {training_time} sec")
+
+results = total_accs
+results.append(training_time)
+results.extend(total_f1s)
+
+# Save Results to csv file
+import os
+import csv
+dirname = os.path.dirname(__file__)
+filename = os.path.join(dirname, f'results/{args.dataset}/{args.seed}_{args.selector}_{args.fraction}.csv')
+# Example.csv gets created in the current working directory
+with open (filename,'w',newline = '') as csvfile:
+    my_writer = csv.writer(csvfile, delimiter = ',')
+    my_writer.writerow(results)

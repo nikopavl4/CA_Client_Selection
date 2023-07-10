@@ -23,8 +23,10 @@ class Server:
         print(f"Aggregation algorithm: {repr(self.aggregator)}")
 
         # Initialize Selector
-        #self.selector = RandomSelector(args.fraction)
-        self.selector = CASelector(args.fraction, int(sqrt(args.clients)), int(sqrt(args.clients)))
+        if args.selector == 'random':
+            self.selector = RandomSelector(args.fraction)
+        elif args.selector == 'cellular':
+            self.selector = CASelector(args.fraction, int(sqrt(args.clients)), int(sqrt(args.clients)))
 
         print("Successfully initialized FL Server")
   
@@ -43,6 +45,9 @@ class Server:
 
         
     def evaluate(self):
+        """
+        Evaluate on global test set
+        """
         acc, f1 = test(self.model, self.testloader, self.criterion, self.device)
         return acc, f1
     

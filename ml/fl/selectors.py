@@ -105,19 +105,13 @@ class CASelector:
                 
                 # Update C
                 temp1 = client_list[self.label_CA[x,y]].IS/len(client_list[self.label_CA[x,y]].vehicle_list) + new_NPC[x,y] + client_list[self.label_CA[x,y]].DQ
-                print(client_list[self.label_CA[x,y]].DQ)
-                print(new_NPC[x,y])
-                print(client_list[self.label_CA[x,y]].IS/len(client_list[self.label_CA[x,y]].vehicle_list))
                 temp2 = d*len(client_list[self.label_CA[x,y]].vehicle_list)/new_TC[x,y]
                 new_C[x,y] =  float(temp1)*temp2
 
         # Update PF
-        print("Gooooogle")
-        print(int(len(client_list)*self.fraction))
         ind = top_n_indexes(new_C, int(len(client_list)*self.fraction))
         for i,j in ind:
             new_PF[i,j] = 1
-        print(new_PF)
 
         self.PF = new_PF
         self.NPC = new_NPC

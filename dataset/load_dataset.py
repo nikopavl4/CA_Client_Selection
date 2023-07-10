@@ -14,6 +14,14 @@ def load_MNIST():
 
     return mnist_trainset1, mnist_trainset2, mnist_testset
 
+def load_MNIST_cen():
+    mnist_trainset = datasets.MNIST(root='./data', train=True, download=True, transform=torchvision.transforms.ToTensor())
+    mnist_testset = datasets.MNIST(root='./data', train=False, download=True, transform=torchvision.transforms.ToTensor())
+
+    print(f"MNIST - Loaded {len(mnist_trainset)} images as trainset and {len(mnist_testset)} images as testset.")
+
+    return mnist_trainset, mnist_testset
+
 def load_CIFAR10():
     cifar_trainset = datasets.CIFAR10(root='./data', train=True, download=True, transform=torchvision.transforms.ToTensor())
     cifar_testset = datasets.CIFAR10(root='./data', train=False, download=True, transform=torchvision.transforms.ToTensor())
@@ -25,3 +33,12 @@ def load_CIFAR10():
     print(f"CIFAR10 - Loaded {len(cifar_trainset1)} images as trainset, {len(cifar_trainset1)} images as secondary trainset and {len(cifar_testset)} images as testset.")
 
     return cifar_trainset1, cifar_trainset2, cifar_testset
+
+def load_CIFAR10_cen():
+    cifar_trainset = datasets.CIFAR10(root='./data', train=True, download=True, transform=torchvision.transforms.ToTensor())
+    cifar_testset = datasets.CIFAR10(root='./data', train=False, download=True, transform=torchvision.transforms.ToTensor())
+
+
+    print(f"CIFAR10 - Loaded {len(cifar_trainset)} images as trainset and {len(cifar_testset)} images as testset.")
+
+    return cifar_trainset, cifar_testset
