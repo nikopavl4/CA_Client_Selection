@@ -5,14 +5,17 @@ from collections import OrderedDict
 from torch.utils.data import random_split
 from torch.utils.data import DataLoader
 from ml.utils.train_utils import train, test
+from ml.utils.helpers import get_std
+
+from torch.utils.data import ConcatDataset
 
 import numpy as np
 
 class Client:
-    def __init__(self, id, vehicle_list):
+    def __init__(self, id):
         self.id = id
-        self.vehicle_list = vehicle_list
-        self.IS = None
+        self.vehicle_list = []
+        self.IS = 0
         self.DQ = None
         self.dataset = None
         self.trainloader = None
@@ -27,7 +30,7 @@ class Client:
         self.batch_size = None
 
 
-    def init_parameters(self, params: Dict[str, Union[bool, str, int, float]], model):  # default parameters
+    def init_learning_parameters(self, params: Dict[str, Union[bool, str, int, float]], model):  # default parameters
         self.epochs = params["epochs"]
         self.lr = params["lr"]
         self.model = model
@@ -42,12 +45,6 @@ class Client:
         # Get Optimizer
         from ml.utils.helpers import get_optim
         self.optimizer = get_optim(model, params['optimizer'], self.lr)
-
-        # Train - Test Split
-        train_set, val_set = random_split(self.dataset, [int(len(self.dataset)*(1 - self.test_size)), int(len(self.dataset)*self.test_size)])
-        
-        self.train_loader = DataLoader(train_set, batch_size=self.batch_size, shuffle=True)
-        self.test_loader = DataLoader(val_set, batch_size=self.batch_size, shuffle=True)
 
         
 
@@ -69,3 +66,40 @@ class Client:
     def evaluate(self, test_loader):
         acc, f1 = test(self.model,test_loader,self.criterion, self.device)
         return acc, f1
+    
+    def register(self, vehicle):
+        vehicle.current_bs = self.id
+        self.vehicle_list.append(vehicle)
+        self.IS = self.IS + 1
+        
+
+    def unregister(self, vehicle):
+        for mycar in self.vehicle_list:
+            if mycar.id == vehicle.id:
+                self.vehicle_list.remove(vehicle)
+        
+        vehicle.previous_bs = self.id
+
+        return vehicle
+
+    def reconfirm(self, vehicle):
+        for mycar in self.vehicle_list:
+            if mycar.id == vehicle.id:
+                mycar.previous_bs = mycar.current_bs
+
+    def refresh(self):
+        self.dataset = self.vehicle_list[0].dataset
+        for vehicle in self.vehicle_list[1:]:
+            self.dataset = ConcatDataset([self.dataset, vehicle.dataset])
+
+        # Train - Test Split
+        train_set, val_set = random_split(self.dataset, [int(len(self.dataset)*(1 - self.test_size)), int(len(self.dataset)*self.test_size)])
+        
+        self.train_loader = DataLoader(train_set, batch_size=self.batch_size, shuffle=True)
+        self.test_loader = DataLoader(val_set, batch_size=self.batch_size, shuffle=True)
+
+        self.DQ = get_std(self.train_loader)
+
+
+
+        

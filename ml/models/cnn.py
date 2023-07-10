@@ -10,13 +10,13 @@ class CNN(nn.Module):
     Decentralized Data] (https://arxiv.org/pdf/1602.05629.pdf)
     """
 
-    def __init__(self) -> None:
+    def __init__(self, in_channels=3, out_channels=10) -> None:
         super().__init__()
-        self.conv1 = nn.Conv2d(1, 32, 5, padding=1)
+        self.conv1 = nn.Conv2d(in_channels, 32, 5, padding=1)
         self.conv2 = nn.Conv2d(32, 64, 5, padding=1)
         self.pool = nn.MaxPool2d(kernel_size=(2, 2), padding=1)
-        self.fc1 = nn.Linear(64 * 7 * 7, 512)
-        self.fc2 = nn.Linear(512, 10)
+        self.fc1 = nn.Linear(64 * 8 * 8, 512)
+        self.fc2 = nn.Linear(512, out_channels)
 
     def forward(self, input_tensor: torch.Tensor) -> torch.Tensor:
         """Forward pass of the CNN.

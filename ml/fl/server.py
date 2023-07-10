@@ -4,7 +4,8 @@ from typing import Optional, Callable, List, Tuple, OrderedDict, Union
 import torch
 import numpy as np
 from ml.fl.aggregation.aggregator import Aggregator
-from ml.fl.selectors import RandomSelector
+from ml.fl.selectors import RandomSelector, CASelector
+from math import sqrt
 
 class Server:
     def __init__(self, args, testset, model):
@@ -22,7 +23,8 @@ class Server:
         print(f"Aggregation algorithm: {repr(self.aggregator)}")
 
         # Initialize Selector
-        self.selector = RandomSelector(args.fraction)
+        #self.selector = RandomSelector(args.fraction)
+        self.selector = CASelector(args.fraction, int(sqrt(args.clients)), int(sqrt(args.clients)))
 
         print("Successfully initialized FL Server")
   

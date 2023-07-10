@@ -38,7 +38,7 @@ class CASelector:
         self.TC = np.zeros((X, Y))
         #self.CC = np.zeros((X, Y))
         #self.DQ = np.zeros((X, Y))
-        self.label_CA = np.zeros((X, Y))
+        self.label_CA = np.arange(0, (X*Y)).reshape((X, Y)).astype(int)
         self.C = np.zeros((X, Y))
         self.e = 0.75
         self.m = 0.25
@@ -61,24 +61,39 @@ class CASelector:
                     new_TC[x,y] = self.PF[x,y]*len(client_list[self.label_CA[x,y]].vehicle_list) + \
                             self.e*(self.PF[x+1,y]*len(client_list[self.label_CA[x+1,y]].vehicle_list) + self.PF[x,y+1]*len(client_list[self.label_CA[x,y+1]].vehicle_list)) + \
                             self.m*(self.PF[x+1,y+1]*len(client_list[self.label_CA[x+1,y+1]].vehicle_list))
+                
+                elif x==0 and y==self.Y-1:
+                    new_TC[x,y] = self.PF[x,y]*len(client_list[self.label_CA[x,y]].vehicle_list) + \
+                            self.e*(self.PF[x+1,y]*len(client_list[self.label_CA[x+1,y]].vehicle_list) + self.PF[x,y-1]*len(client_list[self.label_CA[x,y-1]].vehicle_list)) + \
+                            self.m*(self.PF[x+1,y-1]*len(client_list[self.label_CA[x+1,y-1]].vehicle_list))
+                    
+                elif x==self.X-1 and y == 0:
+                    new_TC[x,y] = self.PF[x,y]*len(client_list[self.label_CA[x,y]].vehicle_list) + \
+                            self.e*(self.PF[x,y+1]*len(client_list[self.label_CA[x,y+1]].vehicle_list) + self.PF[x-1,y]*len(client_list[self.label_CA[x-1,y]].vehicle_list)) + \
+                            self.m*(self.PF[x-1,y+1]*len(client_list[self.label_CA[x-1,y+1]].vehicle_list))
+                    
                 elif x==0 and y!=0:
                     new_TC[x,y] = self.PF[x,y]*len(client_list[self.label_CA[x,y]].vehicle_list) + \
                             self.e*(self.PF[x+1,y]*len(client_list[self.label_CA[x+1,y]].vehicle_list) + self.PF[x,y+1]*len(client_list[self.label_CA[x,y+1]].vehicle_list)  + self.PF[x,y-1]*len(client_list[self.label_CA[x,y-1]].vehicle_list)) + \
                             self.m*(self.PF[x+1,y+1]*len(client_list[self.label_CA[x+1,y+1]].vehicle_list) + self.PF[x+1,y-1]*len(client_list[self.label_CA[x+1,y-1]].vehicle_list))
+                
                 elif x!=0 and y == 0:
                     new_TC[x,y] = self.PF[x,y]*len(client_list[self.label_CA[x,y]].vehicle_list) + \
                             self.e*(self.PF[x+1,y]*len(client_list[self.label_CA[x+1,y]].vehicle_list) + self.PF[x,y+1]*len(client_list[self.label_CA[x,y+1]].vehicle_list) + self.PF[x-1,y]*len(client_list[self.label_CA[x-1,y]].vehicle_list)) + \
                             self.m*(self.PF[x+1,y+1]*len(client_list[self.label_CA[x+1,y+1]].vehicle_list) + self.PF[x-1,y+1]*len(client_list[self.label_CA[x-1,y+1]].vehicle_list))
+
                 
-                elif x == self.X and y == self.Y:
+                
+                elif x == self.X-1 and y == self.Y-1:
                     new_TC[x,y] = self.PF[x,y]*len(client_list[self.label_CA[x,y]].vehicle_list) + \
                             self.e*(self.PF[x-1,y]*len(client_list[self.label_CA[x-1,y]].vehicle_list) + self.PF[x,y-1]*len(client_list[self.label_CA[x,y-1]].vehicle_list)) + \
                             self.m*(self.PF[x-1,y-1]*len(client_list[self.label_CA[x-1,y-1]].vehicle_list))
-                elif x==self.X and y!=self.Y:
+                
+                elif x==self.X-1 and y!=self.Y-1:
                     new_TC[x,y] = self.PF[x,y]*len(client_list[self.label_CA[x,y]].vehicle_list) + \
                             self.e*(self.PF[x-1,y]*len(client_list[self.label_CA[x-1,y]].vehicle_list) + self.PF[x,y+1]*len(client_list[self.label_CA[x,y+1]].vehicle_list)  + self.PF[x,y-1]*len(client_list[self.label_CA[x,y-1]].vehicle_list)) + \
                             self.m*(self.PF[x-1,y+1]*len(client_list[self.label_CA[x-1,y+1]].vehicle_list) + self.PF[x-1,y-1]*len(client_list[self.label_CA[x-1,y-1]].vehicle_list))
-                elif x!=self.X and y == self.Y:
+                elif x!=self.X-1 and y == self.Y-1:
                     new_TC[x,y] = self.PF[x,y]*len(client_list[self.label_CA[x,y]].vehicle_list) + \
                             self.e*(self.PF[x+1,y]*len(client_list[self.label_CA[x+1,y]].vehicle_list) + self.PF[x,y-1]*len(client_list[self.label_CA[x,y-1]].vehicle_list) + self.PF[x-1,y]*len(client_list[self.label_CA[x-1,y]].vehicle_list)) + \
                             self.m*(self.PF[x+1,y-1]*len(client_list[self.label_CA[x+1,y-1]].vehicle_list) + self.PF[x-1,y-1]*len(client_list[self.label_CA[x-1,y-1]].vehicle_list))
@@ -89,12 +104,20 @@ class CASelector:
                             self.m*(self.PF[x+1,y+1]*len(client_list[self.label_CA[x+1,y+1]].vehicle_list)+ self.PF[x-1,y-1]*len(client_list[self.label_CA[x-1,y-1]].vehicle_list)+self.PF[x-1,y+1]*len(client_list[self.label_CA[x-1,y+1]].vehicle_list)+self.PF[x+1,y-1]*len(client_list[self.label_CA[x+1,y-1]].vehicle_list))
                 
                 # Update C
-                new_C[x,y] = [client_list[self.label_CA[x,y]].IS/len(client_list[self.label_CA[x,y]].vehicle_list) + new_NPC[x,y] + client_list[self.label_CA[x,y]].DQ] * (d*len(client_list[self.label_CA[x,y]].vehicle_list)/new_TC[x,y])
+                temp1 = client_list[self.label_CA[x,y]].IS/len(client_list[self.label_CA[x,y]].vehicle_list) + new_NPC[x,y] + client_list[self.label_CA[x,y]].DQ
+                print(client_list[self.label_CA[x,y]].DQ)
+                print(new_NPC[x,y])
+                print(client_list[self.label_CA[x,y]].IS/len(client_list[self.label_CA[x,y]].vehicle_list))
+                temp2 = d*len(client_list[self.label_CA[x,y]].vehicle_list)/new_TC[x,y]
+                new_C[x,y] =  float(temp1)*temp2
 
-                # Update PF
-                ind = top_n_indexes(new_C, int(len(client_list)*self.fraction))
-                for i,j in ind:
-                    new_PF[i,j] = 1
+        # Update PF
+        print("Gooooogle")
+        print(int(len(client_list)*self.fraction))
+        ind = top_n_indexes(new_C, int(len(client_list)*self.fraction))
+        for i,j in ind:
+            new_PF[i,j] = 1
+        print(new_PF)
 
         self.PF = new_PF
         self.NPC = new_NPC
@@ -111,5 +134,5 @@ class CASelector:
             if client.id in sampled_list_id:
                 sampled_clients.append(client)
   
-
+        print(f"Parameter c={self.fraction}. Sampled {len(sampled_clients)} client(s): {[cl.id for cl in sampled_clients]}")
         return sampled_clients
