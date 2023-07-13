@@ -81,10 +81,12 @@ Fl_Server = Server(args, testset, copy.deepcopy(model))
 
 total_accs = []
 total_f1s = []
+total_participations = []
+busted = 0
 start = time.time()
 for round in range(args.fl_rounds):
     print(f"FL Round: {round}")
-    client_list = Fl_Server.update(client_list)
+    client_list, total_participations, busted = Fl_Server.update(client_list, total_participations, busted)
     acc, f1 = Fl_Server.evaluate()
     print(f'Round {round} - Server Accuracy: {acc}, Server F1: {f1}.')
     total_accs.append(acc)
@@ -102,13 +104,15 @@ print(f"Training time: {training_time} sec")
 results = total_accs
 results.append(training_time)
 results.extend(total_f1s)
+print(dict((i, total_participations.count(i)) for i in total_participations))
+print(f"Busted Total: {busted}")
 
-# Save Results to csv file
-import os
-import csv
-dirname = os.path.dirname(__file__)
-filename = os.path.join(dirname, f'results/{args.dataset}/{args.seed}_{args.selector}_{args.fraction}.csv')
-# Example.csv gets created in the current working directory
-with open (filename,'w',newline = '') as csvfile:
-    my_writer = csv.writer(csvfile, delimiter = ',')
-    my_writer.writerow(results)
+# # Save Results to csv file
+# import os
+# import csv
+# dirname = os.path.dirname(__file__)
+# filename = os.path.join(dirname, f'results/{args.dataset}/{args.seed}_{args.selector}_{args.fraction}.csv')
+# # Example.csv gets created in the current working directory
+# with open (filename,'w',newline = '') as csvfile:
+#     my_writer = csv.writer(csvfile, delimiter = ',')
+#     my_writer.writerow(results)

@@ -23,16 +23,17 @@ class Server:
         print(f"Aggregation algorithm: {repr(self.aggregator)}")
 
         # Initialize Selector
-        if args.selector == 'random':
-            self.selector = RandomSelector(args.fraction)
-        elif args.selector == 'cellular':
-            self.selector = CASelector(args.fraction, int(sqrt(args.clients)), int(sqrt(args.clients)))
+        # if args.selector == 'random':
+        #     self.selector = RandomSelector(args.fraction)
+        # elif args.selector == 'cellular':
+        self.selector = CASelector(args.fraction, int(sqrt(args.clients)), int(sqrt(args.clients)), args.selector)
 
         print("Successfully initialized FL Server")
   
-    def update(self, client_list):
+    def update(self, client_list, total_participations, busted):
         # Perform training for every client
-        selected_clients = self.selector.sample_clients(client_list)
+        selected_clients, busted = self.selector.sample_clients(client_list, busted)
+        total_participations.extend([cl.id for cl in selected_clients])
         for cl in selected_clients:
             train_history = train(cl.model,cl.train_loader, cl.device, cl.criterion, cl.optimizer, cl.epochs,False)
             # Evaluate each client on the respective testset
@@ -41,7 +42,7 @@ class Server:
         
         client_list = self.perform_federated_aggregation(client_list, selected_clients, self.aggregator)
 
-        return client_list
+        return client_list, total_participations, busted
 
         
     def evaluate(self):
